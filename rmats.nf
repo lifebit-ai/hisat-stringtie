@@ -12,6 +12,7 @@
 
 
 params.genome_file = "$baseDir/example/genome/chrX_reduced.fa"
+params.gtf = "$baseDir/example/genome/genes.gtf"
 params.input_folder  = "$baseDir/example/reads"
 params.reads_extension = "*_{1,2}.fastq.gz"
 params.sample_id     = "ERR188383"
@@ -34,7 +35,9 @@ Channel
     .fromPath ( params.genome_file )
     .set { genomes }
 
-
+Channel
+    .fromPath ( params.gtf )
+    .set { gtf }
 
 Channel
     .fromFilePairs( "${params.input_folder}/${params.reads_extension}", size: -1)
@@ -136,7 +139,7 @@ process markduplicates {
     set val(name), file(bam) from sorted_bams
 
     output:
-    set val(name), file("${name}.sorted.nodup.bam") into marked_dups
+    set val(name), file("${name}.sorted.nodup.bam") into marked_dups, marked_dups_stringtie
     file("${name}.metric.txt") into markduplicates_multiqc
 
     script:
@@ -180,6 +183,27 @@ process bamstats {
 }
 
 /*
+ * stringtie
+ */
+
+process stringtie {
+    publishDir = [path: "${params.output}/stringtie", mode: 'copy', overwrite: 'true' ]
+    tag "stringtie: $name"
+
+    input:
+    set val(name), file(bam) from marked_dups_stringtie
+    each file(gtf) from gtf
+
+    output:
+    file("*") into stringtie_results
+
+    script:
+    """   
+    stringtie -e -B -p ${task.cpus} -G $gtf -o ${name}/${name}.gtf $bam
+    """
+}
+
+/*
  * MultiQC
  */
 
@@ -203,3 +227,4 @@ process multiqc {
 workflow.onComplete {
         println ( workflow.success ? "\nDone! Open the following report in your browser --> $params.output/multiqc_report.html\n" : "Oops .. something went wrong" )
 }
+
