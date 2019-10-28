@@ -96,8 +96,7 @@ process mapping {
            -p ${task.cpus} \
            --met-stderr \
            --new-summary \
-           --summary-file ${name}.hisat2_summary.txt \
-           | samtools view -bS - > ${name}.bam
+           --summary-file ${name}.hisat2_summary.txt | samtools view -bS - > ${name}.bam
     """
 }
 
