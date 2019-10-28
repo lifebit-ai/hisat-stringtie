@@ -90,13 +90,13 @@ process mapping {
 
     script:
     """
-    hisat2 -x $index_dir/genome_index \\
-           -1 ${reads[0]} \\
-           -2 ${reads[1]} \\
-           -p ${task.cpus} \\
-           --met-stderr \\
-           --new-summary \\
-           --summary-file ${name}.hisat2_summary.txt \\
+    hisat2 -x $index_dir/genome_index \
+           -1 ${reads[0]} \
+           -2 ${reads[1]} \
+           -p ${task.cpus} \
+           --met-stderr \
+           --new-summary \
+           --summary-file ${name}.hisat2_summary.txt \
            | samtools view -bS - > ${name}.bam
     """
 }
@@ -118,9 +118,9 @@ process sortbam {
     script:
     avail_mem=""
     """   
-    samtools sort \\
-        $bam \\
-        -@ ${task.cpus} ${avail_mem} \\
+    samtools sort \
+        $bam \
+        -@ ${task.cpus} ${avail_mem} \
         -o ${name}.sorted.bam
 
     samtools index ${name}.sorted.bam
@@ -147,14 +147,14 @@ process markduplicates {
     markdup_java_options="-Xms2g -Xmx4g"
     """   
 
-    picard ${markdup_java_options} MarkDuplicates \\
-        INPUT=$bam \\
-        OUTPUT=${name}.sorted.nodup.bam \\
-        METRICS_FILE=${name}.metric.txt \\
-        REMOVE_DUPLICATES=true \\
-        ASSUME_SORTED=true \\
-        PROGRAM_RECORD_ID='null' \\
-        CREATE_INDEX=true \\
+    picard ${markdup_java_options} MarkDuplicates \
+        INPUT=$bam \
+        OUTPUT=${name}.sorted.nodup.bam \
+        METRICS_FILE=${name}.metric.txt \
+        REMOVE_DUPLICATES=true \
+        ASSUME_SORTED=true \
+        PROGRAM_RECORD_ID='null' \
+        CREATE_INDEX=true \
         VALIDATION_STRINGENCY=LENIENT
     
     samtools index ${name}.sorted.nodup.bam
